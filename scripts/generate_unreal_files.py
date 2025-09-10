@@ -276,6 +276,43 @@ def process_source_files(vendor_dir, module_dir, use_p4, verbose):
 								print(f'  Fixed include path in idl_gen_text.cpp')
 
 						changes_made = True
+				elif source_file_name == 'util.cpp':
+						with open(source_file, 'r', encoding='utf-8') as f:
+								content = f.read()
+
+						# Need to move this to fix broken UE builds
+						content = content.replace('#include "flatbuffers/util.h"\n', '')
+						content = content.replace(
+								'#include <cstring>', '#include "flatbuffers/util.h"\n\n#include <cstring>')
+
+						file_exists = os.path.isfile(dest_file)
+
+						if file_exists:
+								with open(dest_file, 'r', encoding='utf-8') as f:
+										existing_content = f.read()
+
+								if existing_content == content:
+										if verbose:
+												print(f'No change detected for {source_file_name}')
+										continue
+
+								print(f'Change detected: {source_file_name}')
+								if use_p4:
+										subprocess.run(['p4', 'edit', str(dest_file)])
+						else:
+								print(f'New file detected: {source_file_name}')
+
+						with open(dest_file, 'w', encoding='utf-8') as f:
+								f.write(content)
+
+						if not file_exists and use_p4:
+								subprocess.run(['p4', 'add', str(dest_file)])
+
+						if verbose:
+								print(
+										f'  Moved #include "flatbuffers/util.h" to before #include <cstring> in util.cpp')
+
+						changes_made = True
 				else:
 						if copy_and_modify_file(source_file, dest_file, use_p4, verbose):
 								changes_made = True
