@@ -142,7 +142,7 @@ namespace Google.FlatBuffers.Test
             //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
             // revert to original values after testing
             Monster monster = Monster.GetRootAsMonster(dataBuffer);
-            
+
 
             // mana is optional and does not exist in the buffer so the mutation should fail
             // the mana field should retain its default value
@@ -1138,8 +1138,8 @@ namespace Google.FlatBuffers.Test
             var offset = KeywordsInTable.CreateKeywordsInTable(
                 fbb, KeywordTest.ABC.@stackalloc, KeywordTest.@public.NONE);
             fbb.Finish(offset.Value);
- 
-            KeywordsInTable keywordsInTable = 
+
+            KeywordsInTable keywordsInTable =
                 KeywordsInTable.GetRootAsKeywordsInTable(fbb.DataBuffer);
 
             Assert.AreEqual(keywordsInTable.Is, KeywordTest.ABC.@stackalloc);
@@ -1154,7 +1154,7 @@ namespace Google.FlatBuffers.Test
           ScalarStuff.AddMaybeEnum(fbb, null);
           var offset = ScalarStuff.EndScalarStuff(fbb);
           ScalarStuff.FinishScalarStuffBuffer(fbb, offset);
-          
+
           ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
           Assert.AreEqual(null, scalarStuff.MaybeEnum);
         }
@@ -1167,7 +1167,7 @@ namespace Google.FlatBuffers.Test
             // test for https://github.com/google/flatbuffers/issues/7380.
             var fbb = new FlatBufferBuilder(1);
 
-            // Create a vector of Stat objects, with Count being the key. 
+            // Create a vector of Stat objects, with Count being the key.
             var stat_offsets = new Offset<Stat>[4];
             for(ushort i = 0; i < stat_offsets.Length; i++) {
                 Stat.StartStat(fbb);
@@ -1209,7 +1209,7 @@ namespace Google.FlatBuffers.Test
             Monster.AddTest(fbb, monster_inner.Value);
             Monster.AddTestType(fbb, Any.Monster);
             var monster_outer = Monster.EndMonster(fbb);
-            fbb.Finish(monster_outer.Value);
+            fbb.Finish(monster_outer.Value, "MONS");
             var bytes = fbb.SizedByteArray();
             var bytes_to_corrupt_inner_name = fbb.SizedByteArray();
             var bytes_to_corrupt_outer_name = fbb.SizedByteArray();
