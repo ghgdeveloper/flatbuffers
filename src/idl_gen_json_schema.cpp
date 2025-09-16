@@ -470,21 +470,36 @@ class JsonSchemaGenerator : public BaseGenerator {
         code_ += Indent(3) + "]," + NewLine();
       }
 
-      std::vector<FieldDef *> requiredProperties;
-      std::copy_if(properties.begin(), properties.end(),
-                   back_inserter(requiredProperties),
-                   [](FieldDef const *prop) { return prop->IsRequired(); });
-      if (!requiredProperties.empty()) {
-        auto required_string(Indent(3) + "\"required\" : [");
-        for (auto req_prop = requiredProperties.cbegin();
-             req_prop != requiredProperties.cend(); ++req_prop) {
-          required_string.append("\"" + (*req_prop)->name + "\"");
-          if (*req_prop != requiredProperties.back()) {
-            required_string.append(", ");
+      if (structure->fixed) {
+        if (!properties.empty()) {
+          auto required_string(Indent(3) + "\"required\" : [");
+          for (auto prop = properties.cbegin();
+               prop != properties.cend(); ++prop) {
+            required_string.append("\"" + (*prop)->name + "\"");
+            if (*prop != properties.back()) {
+              required_string.append(", ");
+            }
           }
+          required_string.append("],");
+          code_ += required_string + NewLine();
         }
-        required_string.append("],");
-        code_ += required_string + NewLine();
+      } else {
+        std::vector<FieldDef *> requiredProperties;
+        std::copy_if(properties.begin(), properties.end(),
+                     back_inserter(requiredProperties),
+                     [](FieldDef const *prop) { return prop->IsRequired(); });
+        if (!requiredProperties.empty()) {
+          auto required_string(Indent(3) + "\"required\" : [");
+          for (auto req_prop = requiredProperties.cbegin();
+               req_prop != requiredProperties.cend(); ++req_prop) {
+            required_string.append("\"" + (*req_prop)->name + "\"");
+            if (*req_prop != requiredProperties.back()) {
+              required_string.append(", ");
+            }
+          }
+          required_string.append("],");
+          code_ += required_string + NewLine();
+        }
       }
       code_ += Indent(3) + "\"additionalProperties\" : false" + NewLine();
       auto closeType(Indent(2) + "}");

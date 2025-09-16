@@ -23,6 +23,7 @@
                 "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
               }
       },
+      "required" : ["hair_length"],
       "additionalProperties" : false
     },
     "BookReader" : {
@@ -32,6 +33,7 @@
                 "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
               }
       },
+      "required" : ["books_read"],
       "additionalProperties" : false
     },
     "FallingTub" : {
@@ -41,6 +43,7 @@
                 "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
               }
       },
+      "required" : ["weight"],
       "additionalProperties" : false
     },
     "HandFan" : {
