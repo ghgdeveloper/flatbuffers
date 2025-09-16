@@ -33,6 +33,7 @@
                 "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
               }
       },
+      "required" : ["a"],
       "additionalProperties" : false
     },
     "MyGame_OtherNameSpace_TableB" : {
@@ -75,6 +76,7 @@
                 "type" : "integer", "minimum" : -128, "maximum" : 127
               }
       },
+      "required" : ["a", "b"],
       "additionalProperties" : false
     },
     "MyGame_Example_TestSimpleTableWithEnum" : {
@@ -108,6 +110,7 @@
                 "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Test" }]
               }
       },
+      "required" : ["x", "y", "z", "test1", "test2", "test3"],
       "additionalProperties" : false
     },
     "MyGame_Example_Ability" : {
@@ -120,6 +123,7 @@
                 "type" : "integer", "minimum" : 0, "maximum" : 4294967295
               }
       },
+      "required" : ["id", "distance"],
       "additionalProperties" : false
     },
     "MyGame_Example_StructOfStructs" : {
@@ -135,6 +139,7 @@
                 "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Ability" }]
               }
       },
+      "required" : ["a", "b", "c"],
       "additionalProperties" : false
     },
     "MyGame_Example_StructOfStructsOfStructs" : {
@@ -144,6 +149,7 @@
                 "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_StructOfStructs" }]
               }
       },
+      "required" : ["a"],
       "additionalProperties" : false
     },
     "MyGame_Example_Stat" : {
