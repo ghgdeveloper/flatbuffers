@@ -320,69 +320,9 @@ def process_source_files(vendor_dir, module_dir, use_p4, verbose):
 		return changes_made
 
 
-def process_dotnet_files(vendor_dir, use_p4, verbose):
-		changes_made = False
-		project_root = vendor_dir.parent.parent
-		source_dir = vendor_dir / 'net' / 'FlatBuffers'
-		dest_dir = project_root / 'DawnDotNet' / 'FlatBuffers'
-		if not source_dir.exists():
-				print(f'WARNING: Source FlatBuffers directory not found: {source_dir}')
-				return False
-
-		if not dest_dir.exists():
-				print(
-						f'WARNING: DawnDotNet/FlatBuffers directory not found: {dest_dir}')
-				return False
-
-		print('Processing C# FlatBuffers files...')
-		excluded_dirs = {'bin', 'obj'}
-		for item in source_dir.iterdir():
-				if item.is_dir() and item.name in excluded_dirs:
-						if verbose:
-								print(f'  Skipping directory: {item.name}/')
-						continue
-
-				if item.is_file():
-						source_file = item
-						dest_file = dest_dir / item.name
-
-						with open(source_file, 'rb') as f:
-								content = f.read()
-
-						file_exists = os.path.isfile(dest_file)
-
-						if file_exists:
-								with open(dest_file, 'rb') as f:
-										existing_content = f.read()
-
-								if existing_content == content:
-										if verbose:
-												print(f'  No change detected for {item.name}')
-										continue
-
-								print(f'  Change detected: {item.name}')
-								if use_p4:
-										subprocess.run(['p4', 'edit', str(dest_file)])
-						else:
-								print(f'  New file detected: {item.name}')
-
-						with open(dest_file, 'wb') as f:
-								f.write(content)
-
-						if not file_exists and use_p4:
-								subprocess.run(['p4', 'add', str(dest_file)])
-
-						if verbose:
-								print(f'    Copied {item.name} to {dest_file}')
-
-						changes_made = True
-
-		return changes_made
-
-
 def main():
 		parser = argparse.ArgumentParser(
-				description='Copy FlatBuffers files from vendor directory to Unreal Engine ThirdParty module and DawnDotNet.'
+				description='Copy FlatBuffers files from vendor directory to Unreal Engine ThirdParty module.'
 		)
 
 		parser.add_argument(
@@ -434,8 +374,6 @@ def main():
 		if process_header_files(vendor_dir, module_dir, use_p4, args.verbose):
 				changes_made = True
 		if process_source_files(vendor_dir, module_dir, use_p4, args.verbose):
-				changes_made = True
-		if process_dotnet_files(vendor_dir, use_p4, args.verbose):
 				changes_made = True
 
 		if changes_made:
