@@ -225,6 +225,37 @@ static std::string GenType(const Type &type) {
   }
 }
 
+static std::string GenDefaultValue(const Type &type) {
+  switch (type.base_type) {
+    case BASE_TYPE_BOOL:
+      return "false";
+    case BASE_TYPE_CHAR:
+    case BASE_TYPE_UCHAR:
+    case BASE_TYPE_SHORT:
+    case BASE_TYPE_USHORT:
+    case BASE_TYPE_INT:
+    case BASE_TYPE_UINT:
+    case BASE_TYPE_LONG:
+    case BASE_TYPE_ULONG:
+      return "0";
+    case BASE_TYPE_FLOAT:
+    case BASE_TYPE_DOUBLE:
+      return "0.0";
+    case BASE_TYPE_STRING:
+      return "\"\"";
+    case BASE_TYPE_ARRAY:
+    case BASE_TYPE_VECTOR:
+    case BASE_TYPE_VECTOR64:
+      return "[]";
+    case BASE_TYPE_STRUCT:
+      return "{}";
+    // No good option for unions
+    case BASE_TYPE_UNION:
+    default:
+      return "null";
+  }
+}
+
 static std::string GenNullableType(const FieldDef &field) {
   const std::string base_type = GenType(field.value.type);
 
@@ -390,6 +421,20 @@ class JsonSchemaGenerator : public BaseGenerator {
         std::string typeLine = Indent(4) + "\"" + property->name + "\"";
         typeLine += " : {" + NewLine() + Indent(8);
         typeLine += GenNullableType(*property);
+        // There is a bug with how vscode handles fields like this. To work around  this we add a default field
+        // For reference:
+        // https://github.com/microsoft/vscode-json-languageservice/pull/237/files
+        // https://github.com/microsoft/vscode/issues/43195
+        // Check if the field is nullable and add default field if it is
+        bool can_be_null = false;
+        if (property->IsOptional()) {
+          can_be_null = true;
+        } else if (!property->IsRequired() && !IsScalar(property->value.type.base_type)) {
+          can_be_null = true;
+        }
+        if (can_be_null) {
+          typeLine += "," + NewLine() + Indent(8) + "\"default\": " + GenDefaultValue(property->value.type);
+        }
         typeLine += arrayInfo;
         typeLine += deprecated_info;
         auto description = PrepareDescription(property->doc_comment);
