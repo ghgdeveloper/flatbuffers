@@ -62,13 +62,16 @@
                 "type" : "string", "enum": ["NONE", "MuLan", "Rapunzel", "Belle", "BookFan", "Other", "Unused"]
               },
         "main_character" : {
-                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/Attacker" },{ "$ref" : "#/definitions/Rapunzel" },{ "$ref" : "#/definitions/BookReader" },{ "$ref" : "#/definitions/BookReader" },{ "type": "string" },{ "type": "string" }] }]
+                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/Attacker" },{ "$ref" : "#/definitions/Rapunzel" },{ "$ref" : "#/definitions/BookReader" },{ "$ref" : "#/definitions/BookReader" },{ "type": "string" },{ "type": "string" }] }],
+                "default": null
               },
         "characters_type" : {
-                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "string", "enum": ["MuLan", "Rapunzel", "Belle", "BookFan", "Other", "Unused"]} }]
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "string", "enum": ["MuLan", "Rapunzel", "Belle", "BookFan", "Other", "Unused"]} }],
+                "default": []
               },
         "characters" : {
-                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"anyOf": [{ "$ref" : "#/definitions/Attacker" }, { "$ref" : "#/definitions/Rapunzel" }, { "$ref" : "#/definitions/BookReader" }, { "$ref" : "#/definitions/BookReader" }, { "type": "string" }, { "type": "string" }]} }]
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"anyOf": [{ "$ref" : "#/definitions/Attacker" }, { "$ref" : "#/definitions/Rapunzel" }, { "$ref" : "#/definitions/BookReader" }, { "$ref" : "#/definitions/BookReader" }, { "type": "string" }, { "type": "string" }]} }],
+                "default": []
               }
       },
       "allOf": [
