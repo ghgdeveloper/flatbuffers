@@ -169,7 +169,6 @@ static std::string GenArrayType(const Type &type) {
   return "\"type\" : \"array\", \"items\" : {" + element_type + "}";
 }
 
-
 static std::string GenType(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();
@@ -227,8 +226,7 @@ static std::string GenType(const Type &type) {
 
 static std::string GenDefaultValue(const Type &type) {
   switch (type.base_type) {
-    case BASE_TYPE_BOOL:
-      return "false";
+    case BASE_TYPE_BOOL: return "false";
     case BASE_TYPE_CHAR:
     case BASE_TYPE_UCHAR:
     case BASE_TYPE_SHORT:
@@ -236,23 +234,17 @@ static std::string GenDefaultValue(const Type &type) {
     case BASE_TYPE_INT:
     case BASE_TYPE_UINT:
     case BASE_TYPE_LONG:
-    case BASE_TYPE_ULONG:
-      return "0";
+    case BASE_TYPE_ULONG: return "0";
     case BASE_TYPE_FLOAT:
-    case BASE_TYPE_DOUBLE:
-      return "0.0";
-    case BASE_TYPE_STRING:
-      return "\"\"";
+    case BASE_TYPE_DOUBLE: return "0.0";
+    case BASE_TYPE_STRING: return "\"\"";
     case BASE_TYPE_ARRAY:
     case BASE_TYPE_VECTOR:
-    case BASE_TYPE_VECTOR64:
-      return "[]";
-    case BASE_TYPE_STRUCT:
-      return "{}";
+    case BASE_TYPE_VECTOR64: return "[]";
+    case BASE_TYPE_STRUCT: return "{}";
     // No good option for unions
     case BASE_TYPE_UNION:
-    default:
-      return "null";
+    default: return "null";
   }
 }
 
@@ -338,6 +330,32 @@ class JsonSchemaGenerator : public BaseGenerator {
     return "";
   }
 
+  static std::string SerializeAttributes(const SymbolTable<Value> &attributes) {
+    if (attributes.dict.empty()) return "";
+
+    std::string result = "\"x-flatbuffers-attributes\": {";
+    bool first = true;
+
+    for (const auto &kv : attributes.dict) {
+      if (!first) result += ", ";
+      first = false;
+
+      result += "\"" + kv.first + "\": ";
+
+      std::string escaped_value;
+      if (EscapeString(kv.second->constant.c_str(),
+                       kv.second->constant.length(), &escaped_value, true,
+                       true)) {
+        result += escaped_value;
+      } else {
+        result += "\"\"";
+      }
+    }
+
+    result += "}";
+    return result;
+  }
+
   bool generate() {
     code_ = "";
     if (parser_.root_struct_def_ == nullptr) {
@@ -352,6 +370,11 @@ class JsonSchemaGenerator : public BaseGenerator {
     for (auto e = parser_.enums_.vec.cbegin(); e != parser_.enums_.vec.cend();
          ++e) {
       code_ += Indent(2) + "\"" + GenFullName(*e) + "\" : {" + NewLine();
+
+      auto attr_str = SerializeAttributes((*e)->attributes);
+      if (!attr_str.empty()) {
+        code_ += Indent(3) + attr_str + "," + NewLine();
+      }
 
       if ((*e)->is_union) {
         std::string union_type_string("\"anyOf\": [");
@@ -384,7 +407,48 @@ class JsonSchemaGenerator : public BaseGenerator {
             if (*enum_value != (*e)->Vals().back()) { enumdef.append(", "); }
           }
           enumdef.append("]");
-          code_ += enumdef + NewLine();
+          code_ += enumdef;
+
+          // Add enum value attributes if any values have attributes
+          bool has_value_attrs = false;
+          for (auto enum_value = (*e)->Vals().begin();
+               enum_value != (*e)->Vals().end(); ++enum_value) {
+            if (!(*enum_value)->attributes.dict.empty()) {
+              has_value_attrs = true;
+              break;
+            }
+          }
+
+          if (has_value_attrs) {
+            code_ += "," + NewLine();
+            code_ += Indent(3) + "\"x-flatbuffers-enum-values\": {" + NewLine();
+            bool first = true;
+            for (auto enum_value = (*e)->Vals().begin();
+                 enum_value != (*e)->Vals().end(); ++enum_value) {
+              if (!(*enum_value)->attributes.dict.empty()) {
+                if (!first) code_ += "," + NewLine();
+                first = false;
+                code_ += Indent(4) + "\"" + (*enum_value)->name + "\": {";
+                bool attr_first = true;
+                for (const auto &kv : (*enum_value)->attributes.dict) {
+                  if (!attr_first) code_ += ", ";
+                  attr_first = false;
+                  code_ += "\"" + kv.first + "\": ";
+                  std::string escaped_value;
+                  if (EscapeString(kv.second->constant.c_str(),
+                                   kv.second->constant.length(), &escaped_value,
+                                   true, true)) {
+                    code_ += escaped_value;
+                  } else {
+                    code_ += "\"\"";
+                  }
+                }
+                code_ += "}";
+              }
+            }
+            code_ += NewLine() + Indent(3) + "}";
+          }
+          code_ += NewLine();
         }
       }
       code_ += Indent(2) + "}," + NewLine();  // close type
@@ -394,6 +458,13 @@ class JsonSchemaGenerator : public BaseGenerator {
       const auto &structure = *s;
       code_ += Indent(2) + "\"" + GenFullName(structure) + "\" : {" + NewLine();
       code_ += Indent(3) + GenType("object") + "," + NewLine();
+
+      // Add attributes if present
+      auto attr_str = SerializeAttributes(structure->attributes);
+      if (!attr_str.empty()) {
+        code_ += Indent(3) + attr_str + "," + NewLine();
+      }
+
       const auto &comment_lines = structure->doc_comment;
       auto comment = PrepareDescription(comment_lines);
       if (comment != "") {
@@ -421,19 +492,21 @@ class JsonSchemaGenerator : public BaseGenerator {
         std::string typeLine = Indent(4) + "\"" + property->name + "\"";
         typeLine += " : {" + NewLine() + Indent(8);
         typeLine += GenNullableType(*property);
-        // There is a bug with how vscode handles fields like this. To work around  this we add a default field
-        // For reference:
+        // There is a bug with how vscode handles fields like this. To work
+        // around  this we add a default field For reference:
         // https://github.com/microsoft/vscode-json-languageservice/pull/237/files
         // https://github.com/microsoft/vscode/issues/43195
         // Check if the field is nullable and add default field if it is
         bool can_be_null = false;
         if (property->IsOptional()) {
           can_be_null = true;
-        } else if (!property->IsRequired() && !IsScalar(property->value.type.base_type)) {
+        } else if (!property->IsRequired() &&
+                   !IsScalar(property->value.type.base_type)) {
           can_be_null = true;
         }
         if (can_be_null) {
-          typeLine += "," + NewLine() + Indent(8) + "\"default\": " + GenDefaultValue(property->value.type);
+          typeLine += "," + NewLine() + Indent(8) +
+                      "\"default\": " + GenDefaultValue(property->value.type);
         }
         typeLine += arrayInfo;
         typeLine += deprecated_info;
@@ -443,6 +516,12 @@ class JsonSchemaGenerator : public BaseGenerator {
               "," + NewLine() + Indent(8) + "\"description\" : " + description;
         }
 
+        // Add field attributes if present
+        auto field_attr_str = SerializeAttributes(property->attributes);
+        if (!field_attr_str.empty()) {
+          typeLine += "," + NewLine() + Indent(8) + field_attr_str;
+        }
+
         typeLine += NewLine() + Indent(7) + "}";
         if (std::next(prop) != properties.cend()) { typeLine.append(","); }
         code_ += typeLine + NewLine();
@@ -450,8 +529,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       code_ += Indent(3) + "}," + NewLine();  // close properties
       std::vector<std::string> union_conditions;
 
-      for (auto prop = properties.cbegin();
-           prop != properties.cend(); ++prop) {
+      for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
         const auto &property = *prop;
 
         // Add conditionals to point the correct underlying data to the _type
@@ -518,12 +596,10 @@ class JsonSchemaGenerator : public BaseGenerator {
       if (structure->fixed) {
         if (!properties.empty()) {
           auto required_string(Indent(3) + "\"required\" : [");
-          for (auto prop = properties.cbegin();
-               prop != properties.cend(); ++prop) {
+          for (auto prop = properties.cbegin(); prop != properties.cend();
+               ++prop) {
             required_string.append("\"" + (*prop)->name + "\"");
-            if (*prop != properties.back()) {
-              required_string.append(", ");
-            }
+            if (*prop != properties.back()) { required_string.append(", "); }
           }
           required_string.append("],");
           code_ += required_string + NewLine();

@@ -6,6 +6,7 @@
       "enum": ["IncludeVal"]
     },
     "MyGame_Example_Color" : {
+      "x-flatbuffers-attributes": {"bit_flags": "0"},
       "type" : "string",
       "pattern" : "^(Red|Green|Blue)(\\s+(Red|Green|Blue))*$"
     },
@@ -14,6 +15,7 @@
       "enum": ["None", "Human", "Dwarf", "Elf"]
     },
     "MyGame_Example_LongEnum" : {
+      "x-flatbuffers-attributes": {"bit_flags": "0"},
       "type" : "string",
       "pattern" : "^(LongOne|LongTwo|LongBig)(\\s+(LongOne|LongTwo|LongBig))*$"
     },
@@ -83,6 +85,7 @@
     },
     "MyGame_Example_TestSimpleTableWithEnum" : {
       "type" : "object",
+      "x-flatbuffers-attributes": {"csharp_partial": "0", "private": "0"},
       "properties" : {
         "color" : {
                 "$ref" : "#/definitions/MyGame_Example_Color"
@@ -92,6 +95,7 @@
     },
     "MyGame_Example_Vec3" : {
       "type" : "object",
+      "x-flatbuffers-attributes": {"force_align": "8"},
       "properties" : {
         "x" : {
                 "type" : "number"
@@ -120,7 +124,8 @@
       "type" : "object",
       "properties" : {
         "id" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 4294967295
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "x-flatbuffers-attributes": {"key": "0"}
               },
         "distance" : {
                 "type" : "integer", "minimum" : 0, "maximum" : 4294967295
@@ -170,7 +175,8 @@
                 "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807
               },
         "count" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 65535
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "x-flatbuffers-attributes": {"key": "0"}
               }
       },
       "additionalProperties" : false
@@ -179,7 +185,8 @@
       "type" : "object",
       "properties" : {
         "id" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "x-flatbuffers-attributes": {"hash": "fnv1a_64", "key": "0"}
               }
       },
       "additionalProperties" : false
@@ -190,219 +197,281 @@
       "properties" : {
         "pos" : {
                 "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Vec3" }],
-                "default": {}
+                "default": {},
+                "x-flatbuffers-attributes": {"id": "0"}
               },
         "mana" : {
-                "type" : "integer", "minimum" : -32768, "maximum" : 32767
+                "type" : "integer", "minimum" : -32768, "maximum" : 32767,
+                "x-flatbuffers-attributes": {"id": "1"}
               },
         "hp" : {
-                "type" : "integer", "minimum" : -32768, "maximum" : 32767
+                "type" : "integer", "minimum" : -32768, "maximum" : 32767,
+                "x-flatbuffers-attributes": {"id": "2"}
               },
         "name" : {
-                "type" : "string"
+                "type" : "string",
+                "x-flatbuffers-attributes": {"id": "3", "key": "0"}
               },
         "friendly" : {
                 "type" : "boolean",
-                "deprecated" : true
+                "deprecated" : true,
+                "x-flatbuffers-attributes": {"deprecated": "0", "id": "4", "priority": "1"}
               },
         "inventory" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "5"}
               },
         "color" : {
-                "$ref" : "#/definitions/MyGame_Example_Color"
+                "$ref" : "#/definitions/MyGame_Example_Color",
+                "x-flatbuffers-attributes": {"id": "6"}
               },
         "test_type" : {
-                "type" : "string", "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
+                "type" : "string", "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"],
+                "x-flatbuffers-attributes": {"id": "7"}
               },
         "test" : {
                 "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] }],
-                "default": null
+                "default": null,
+                "x-flatbuffers-attributes": {"id": "8"}
               },
         "test4" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "9"}
               },
         "testarrayofstring" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "string"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "10"}
               },
         "testarrayoftables" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Monster"} }],
                 "default": [],
-                "description" : "an example documentation comment: this will end up in the generated code\nmultiline too"
+                "description" : "an example documentation comment: this will end up in the generated code\nmultiline too",
+                "x-flatbuffers-attributes": {"id": "11"}
               },
         "enemy" : {
                 "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Monster" }],
-                "default": {}
+                "default": {},
+                "x-flatbuffers-attributes": {"id": "12"}
               },
         "testnestedflatbuffer" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "13", "nested_flatbuffer": "Monster"}
               },
         "testempty" : {
                 "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Stat" }],
-                "default": {}
+                "default": {},
+                "x-flatbuffers-attributes": {"id": "14"}
               },
         "testbool" : {
-                "type" : "boolean"
+                "type" : "boolean",
+                "x-flatbuffers-attributes": {"id": "15"}
               },
         "testhashs32_fnv1" : {
-                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647,
+                "x-flatbuffers-attributes": {"hash": "fnv1_32", "id": "16"}
               },
         "testhashu32_fnv1" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 4294967295
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "x-flatbuffers-attributes": {"hash": "fnv1_32", "id": "17"}
               },
         "testhashs64_fnv1" : {
-                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807
+                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807,
+                "x-flatbuffers-attributes": {"hash": "fnv1_64", "id": "18"}
               },
         "testhashu64_fnv1" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "x-flatbuffers-attributes": {"hash": "fnv1_64", "id": "19"}
               },
         "testhashs32_fnv1a" : {
-                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647,
+                "x-flatbuffers-attributes": {"hash": "fnv1a_32", "id": "20"}
               },
         "testhashu32_fnv1a" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 4294967295
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "x-flatbuffers-attributes": {"cpp_ptr_type": "naked", "cpp_type": "Stat", "hash": "fnv1a_32", "id": "21"}
               },
         "testhashs64_fnv1a" : {
-                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807
+                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807,
+                "x-flatbuffers-attributes": {"hash": "fnv1a_64", "id": "22"}
               },
         "testhashu64_fnv1a" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "x-flatbuffers-attributes": {"hash": "fnv1a_64", "id": "23"}
               },
         "testarrayofbools" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "boolean"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "24"}
               },
         "testf" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "25"}
               },
         "testf2" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "26"}
               },
         "testf3" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "27"}
               },
         "testarrayofstring2" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "string"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "28"}
               },
         "testarrayofsortedstruct" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Ability"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "29"}
               },
         "flex" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"flexbuffer": "0", "id": "30"}
               },
         "test5" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "31"}
               },
         "vector_of_longs" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "32"}
               },
         "vector_of_doubles" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "number"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "33"}
               },
         "parent_namespace_test" : {
                 "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_InParentNamespace" }],
-                "default": {}
+                "default": {},
+                "x-flatbuffers-attributes": {"id": "34"}
               },
         "vector_of_referrables" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "35"}
               },
         "single_weak_reference" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "x-flatbuffers-attributes": {"cpp_ptr_type": "naked", "cpp_type": "ReferrableT", "hash": "fnv1a_64", "id": "36"}
               },
         "vector_of_weak_references" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"cpp_ptr_type": "naked", "cpp_type": "ReferrableT", "hash": "fnv1a_64", "id": "37"}
               },
         "vector_of_strong_referrables" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"cpp_ptr_type": "default_ptr_type", "id": "38"}
               },
         "co_owning_reference" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "x-flatbuffers-attributes": {"cpp_ptr_type": "naked", "cpp_type": "ReferrableT", "hash": "fnv1a_64", "id": "39"}
               },
         "vector_of_co_owning_references" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"cpp_ptr_type": "default_ptr_type", "cpp_ptr_type_get": ".get()", "cpp_type": "ReferrableT", "hash": "fnv1a_64", "id": "40"}
               },
         "non_owning_reference" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "x-flatbuffers-attributes": {"cpp_ptr_type": "naked", "cpp_ptr_type_get": "", "cpp_type": "ReferrableT", "hash": "fnv1a_64", "id": "41"}
               },
         "vector_of_non_owning_references" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"cpp_ptr_type": "naked", "cpp_ptr_type_get": "", "cpp_type": "ReferrableT", "hash": "fnv1a_64", "id": "42"}
               },
         "any_unique_type" : {
-                "type" : "string", "enum": ["NONE", "M", "TS", "M2"]
+                "type" : "string", "enum": ["NONE", "M", "TS", "M2"],
+                "x-flatbuffers-attributes": {"id": "43"}
               },
         "any_unique" : {
                 "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] }],
-                "default": null
+                "default": null,
+                "x-flatbuffers-attributes": {"id": "44"}
               },
         "any_ambiguous_type" : {
-                "type" : "string", "enum": ["NONE", "M1", "M2", "M3"]
+                "type" : "string", "enum": ["NONE", "M1", "M2", "M3"],
+                "x-flatbuffers-attributes": {"id": "45"}
               },
         "any_ambiguous" : {
                 "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }] }],
-                "default": null
+                "default": null,
+                "x-flatbuffers-attributes": {"id": "46"}
               },
         "vector_of_enums" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Color"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "47"}
               },
         "signed_enum" : {
-                "$ref" : "#/definitions/MyGame_Example_Race"
+                "$ref" : "#/definitions/MyGame_Example_Race",
+                "x-flatbuffers-attributes": {"id": "48"}
               },
         "testrequirednestedflatbuffer" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "49", "nested_flatbuffer": "Monster"}
               },
         "scalar_key_sorted_tables" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Stat"} }],
-                "default": []
+                "default": [],
+                "x-flatbuffers-attributes": {"id": "50"}
               },
         "native_inline" : {
                 "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Test" }],
-                "default": {}
+                "default": {},
+                "x-flatbuffers-attributes": {"id": "51", "native_inline": "0"}
               },
         "long_enum_non_enum_default" : {
-                "$ref" : "#/definitions/MyGame_Example_LongEnum"
+                "$ref" : "#/definitions/MyGame_Example_LongEnum",
+                "x-flatbuffers-attributes": {"id": "52"}
               },
         "long_enum_normal_default" : {
-                "$ref" : "#/definitions/MyGame_Example_LongEnum"
+                "$ref" : "#/definitions/MyGame_Example_LongEnum",
+                "x-flatbuffers-attributes": {"id": "53"}
               },
         "nan_default" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "54"}
               },
         "inf_default" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "55"}
               },
         "positive_inf_default" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "56"}
               },
         "infinity_default" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "57"}
               },
         "positive_infinity_default" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "58"}
               },
         "negative_inf_default" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "59"}
               },
         "negative_infinity_default" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "60"}
               },
         "double_inf_default" : {
-                "type" : "number"
+                "type" : "number",
+                "x-flatbuffers-attributes": {"id": "61"}
               }
       },
       "allOf": [
