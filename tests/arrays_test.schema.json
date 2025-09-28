@@ -10,6 +10,7 @@
       "properties" : {
         "a" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647} }],
+                "default": [],
                 "minItems": 2,
                 "maxItems": 2
               },
@@ -18,11 +19,13 @@
               },
         "c" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_TestEnum"} }],
+                "default": [],
                 "minItems": 2,
                 "maxItems": 2
               },
         "d" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807} }],
+                "default": [],
                 "minItems": 2,
                 "maxItems": 2
               }
@@ -38,6 +41,7 @@
               },
         "b" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647} }],
+                "default": [],
                 "minItems": 15,
                 "maxItems": 15
               },
@@ -46,6 +50,7 @@
               },
         "d" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_NestedStruct"} }],
+                "default": [],
                 "minItems": 2,
                 "maxItems": 2
               },
@@ -54,6 +59,7 @@
               },
         "f" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807} }],
+                "default": [],
                 "minItems": 2,
                 "maxItems": 2
               }
@@ -65,7 +71,8 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_ArrayStruct" }]
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_ArrayStruct" }],
+                "default": {}
               }
       },
       "additionalProperties" : false
