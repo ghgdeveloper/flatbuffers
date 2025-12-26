@@ -598,6 +598,21 @@ inline bool EqualByName(const Type& a, const Type& b) {
            a.enum_def->name == b.enum_def->name));
 }
 
+// Represents a single constant field within a ConstantDef block.
+struct ConstantFieldDef : public Definition {
+  ConstantFieldDef() {}
+
+  Value value;
+};
+
+// Represents a block of named constants, similar to a struct but for
+// compile-time constant values of primitive types.
+struct ConstantDef : public Definition {
+  ConstantDef() {}
+
+  SymbolTable<ConstantFieldDef> fields;
+};
+
 struct RPCCall : public Definition {
   Offset<reflection::RPCCall> Serialize(FlatBufferBuilder* builder,
                                         const Parser& parser) const;
@@ -712,6 +727,10 @@ struct IDLOptions {
   bool no_leak_private_annotations;
   bool require_json_eof;
   bool keep_proto_id;
+
+  // Enable parsing of constant blocks (shared constants of primitive types).
+  // Currently only C++ and C# code generators support this feature.
+  bool enable_constants;
 
   /********************************** Python **********************************/
   bool python_no_type_prefix_suffix;
@@ -856,6 +875,7 @@ struct IDLOptions {
         no_leak_private_annotations(false),
         require_json_eof(true),
         keep_proto_id(false),
+        enable_constants(false),
         python_no_type_prefix_suffix(false),
         python_typing(false),
         python_gen_numpy(true),
@@ -1167,6 +1187,7 @@ class Parser : public ParserState {
                                       EnumDef** dest);
   FLATBUFFERS_CHECKED_ERROR ParseDecl(const char* filename);
   FLATBUFFERS_CHECKED_ERROR ParseService(const char* filename);
+  FLATBUFFERS_CHECKED_ERROR ParseConstant(const char* filename);
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef* struct_def,
                                              bool isextend, bool inside_oneof);
   FLATBUFFERS_CHECKED_ERROR ParseProtoMapField(StructDef* struct_def);
@@ -1217,6 +1238,7 @@ class Parser : public ParserState {
   SymbolTable<StructDef> structs_;
   SymbolTable<EnumDef> enums_;
   SymbolTable<ServiceDef> services_;
+  SymbolTable<ConstantDef> constants_;
   std::vector<Namespace*> namespaces_;
   Namespace* current_namespace_;
   Namespace* empty_namespace_;

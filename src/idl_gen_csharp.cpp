@@ -162,6 +162,22 @@ class CSharpGenerator : public BaseGenerator {
       }
     }
 
+    for (auto it = parser_.constants_.vec.begin();
+         it != parser_.constants_.vec.end(); ++it) {
+      std::string constcode;
+      auto& constant_def = **it;
+      if (!parser_.opts.one_file)
+        cur_name_space_ = constant_def.defined_namespace;
+      GenConstant(constant_def, &constcode, parser_.opts);
+      if (parser_.opts.one_file) {
+        one_file_code += constcode;
+      } else {
+        if (!SaveType(constant_def.name, *constant_def.defined_namespace,
+                      constcode, false, parser_.opts))
+          return false;
+      }
+    }
+
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       std::string declcode;
@@ -452,6 +468,92 @@ class CSharpGenerator : public BaseGenerator {
     if (enum_def.is_union) {
       code += GenUnionVerify(enum_def.underlying_type);
     }
+  }
+
+  void GenConstant(const ConstantDef& constant_def, std::string* code_ptr,
+                   const IDLOptions& opts) const {
+    (void)opts;
+    std::string& code = *code_ptr;
+    if (constant_def.generated) return;
+
+    GenComment(constant_def.doc_comment, code_ptr, &comment_config);
+
+    if (constant_def.attributes.Lookup("private")) {
+      code += "internal ";
+    } else {
+      code += "public ";
+    }
+    code += "static class " + constant_def.name + "\n{\n";
+
+    for (const auto& field : constant_def.fields.vec) {
+      GenComment(field->doc_comment, code_ptr, &comment_config, "  ");
+
+      const auto& type = field->value.type;
+      std::string type_name = GenTypeBasic(type, false);
+      std::string value = field->value.constant;
+
+      // Determine if we need const or static readonly
+      // C# const requires compile-time constant values
+      // For special float/double values (nan, inf), we need static readonly
+      bool use_readonly = false;
+      if (IsFloat(type.base_type)) {
+        if (value == "nan" || value == "inf" || value == "+inf" ||
+            value == "-inf") {
+          use_readonly = true;
+          if (type.base_type == BASE_TYPE_FLOAT) {
+            if (value == "nan") {
+              value = "float.NaN";
+            } else if (value == "inf" || value == "+inf") {
+              value = "float.PositiveInfinity";
+            } else if (value == "-inf") {
+              value = "float.NegativeInfinity";
+            }
+          } else {  // double
+            if (value == "nan") {
+              value = "double.NaN";
+            } else if (value == "inf" || value == "+inf") {
+              value = "double.PositiveInfinity";
+            } else if (value == "-inf") {
+              value = "double.NegativeInfinity";
+            }
+          }
+        } else {
+          // Regular float/double literals
+          if (type.base_type == BASE_TYPE_FLOAT) {
+            // Add 'f' suffix for float literals if not already present
+            if (value.find('f') == std::string::npos &&
+                value.find('F') == std::string::npos) {
+              value += "f";
+            }
+          }
+        }
+      } else if (type.base_type == BASE_TYPE_BOOL) {
+        value = (value == "0" || value == "false") ? "false" : "true";
+      } else if (type.base_type == BASE_TYPE_LONG) {
+        // Add L suffix for long literals
+        if (value.find('L') == std::string::npos &&
+            value.find('l') == std::string::npos) {
+          value += "L";
+        }
+      } else if (type.base_type == BASE_TYPE_ULONG) {
+        // Add UL suffix for ulong literals
+        if (value.find("UL") == std::string::npos &&
+            value.find("ul") == std::string::npos) {
+          value += "UL";
+        }
+      }
+
+      code += "  public ";
+      if (use_readonly) {
+        code += "static readonly ";
+      } else {
+        code += "const ";
+      }
+      code +=
+          type_name + " " + EscapeKeyword(field->name) + " = " + value + ";\n";
+    }
+
+    code += "}\n\n";
   }
 
   bool HasUnionStringValue(const EnumDef& enum_def) const {

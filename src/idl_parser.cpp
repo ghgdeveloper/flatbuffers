@@ -2892,6 +2892,76 @@ CheckedError Parser::ParseService(const char *filename) {
   return NoError();
 }
 
+CheckedError Parser::ParseConstant(const char *filename) {
+  std::vector<std::string> constant_comment = doc_comment_;
+  NEXT();  // consume 'constant'
+  auto constant_name = attribute_;
+  EXPECT(kTokenIdentifier);
+
+  auto &constant_def = *new ConstantDef();
+  constant_def.name = constant_name;
+  constant_def.file = file_being_parsed_;
+  constant_def.doc_comment = constant_comment;
+  constant_def.defined_namespace = current_namespace_;
+
+  if (filename != nullptr && !opts.project_root.empty()) {
+    constant_def.declaration_file = &GetPooledString(FilePath(
+        opts.project_root, filename, opts.binary_schema_absolute_paths));
+  }
+
+  const auto qualified_name =
+      current_namespace_->GetFullyQualifiedName(constant_name);
+  if (constants_.Add(qualified_name, &constant_def)) {
+    return Error("constant block already exists: " + constant_name);
+  }
+
+  ECHECK(ParseMetaData(&constant_def.attributes));
+  EXPECT('{');
+
+  while (token_ != '}') {
+    std::vector<std::string> field_comment = doc_comment_;
+    auto field_name = attribute_;
+    EXPECT(kTokenIdentifier);
+    EXPECT(':');
+
+    // Parse the type - must be a scalar type
+    Type type;
+    ECHECK(ParseType(type));
+
+    if (!IsScalar(type.base_type)) {
+      return Error(
+          "constant fields must be scalar types (bool, byte, short, int, "
+          "long, float, double, or their unsigned variants)");
+    }
+
+    // Constants must have an initializer
+    if (token_ != '=') {
+      return Error("constant field '" + field_name +
+                   "' must have an initializer (= value)");
+    }
+    NEXT();
+
+    auto &field_def = *new ConstantFieldDef();
+    field_def.name = field_name;
+    field_def.file = file_being_parsed_;
+    field_def.doc_comment = field_comment;
+    field_def.defined_namespace = current_namespace_;
+    field_def.value.type = type;
+
+    // Parse the constant value
+    ECHECK(ParseSingleValue(&field_name, field_def.value, true));
+
+    if (constant_def.fields.Add(field_name, &field_def)) {
+      return Error("constant field already exists: " + field_name);
+    }
+
+    EXPECT(';');
+  }
+
+  NEXT();  // consume '}'
+  return NoError();
+}
+
 bool Parser::SetRootType(const char *name) {
   root_struct_def_ = LookupStruct(name);
   if (!root_struct_def_)
@@ -3797,6 +3867,13 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       known_attributes_[name] = false;
     } else if (IsIdent("rpc_service")) {
       ECHECK(ParseService(source_filename));
+    } else if (IsIdent("constant")) {
+      if (!opts.enable_constants) {
+        return Error(
+            "constant blocks are not enabled. Use --enable-constants flag to "
+            "enable this feature.");
+      }
+      ECHECK(ParseConstant(source_filename));
     } else {
       ECHECK(ParseDecl(source_filename));
     }

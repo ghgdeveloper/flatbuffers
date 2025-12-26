@@ -429,6 +429,12 @@ type_field_collsion_schema = "type_field_collsion.fbs"
 
 flatc(["--csharp", "--gen-object-api"], schema=type_field_collsion_schema)
 
+# Constants test (shared constants of primitive types)
+flatc(
+    NO_INCL_OPTS + CPP_OPTS + CS_OPTS + ["--enable-constants"],
+    schema="constants_test.fbs",
+)
+
 # Union / value collision
 flatc(
     CS_OPTS + ["--gen-object-api", "--gen-onefile"],
