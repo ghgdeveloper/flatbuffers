@@ -2694,7 +2694,8 @@ bool Parser::SupportsOptionalScalars() const {
 
 bool Parser::SupportsDefaultVectorsAndStrings() const {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
-      IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kNim;
+      IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kNim |
+      IDLOptions::kCpp | IDLOptions::kBinary | IDLOptions::kJson;
   return !(opts.lang_to_generate & ~supported_langs);
 }
 
@@ -2710,7 +2711,8 @@ bool Parser::SupportsAdvancedArrayFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
-            IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs)) == 0;
+            IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs |
+            IDLOptions::kSwift)) == 0;
 }
 
 bool Parser::Supports64BitOffsets() const {
@@ -4287,9 +4289,9 @@ bool Parser::Deserialize(const uint8_t *buf, const size_t size) {
     else
       size_prefixed = true;
   }
-  auto verify_fn = size_prefixed ? &reflection::VerifySizePrefixedSchemaBuffer
-                                 : &reflection::VerifySchemaBuffer;
-  if (!verify_fn(verifier)) { return false; }
+  bool verified = size_prefixed ? reflection::VerifySizePrefixedSchemaBuffer(verifier)
+                                : reflection::VerifySchemaBuffer(verifier);
+  if (!verified) { return false; }
   auto schema = size_prefixed ? reflection::GetSizePrefixedSchema(buf)
                               : reflection::GetSchema(buf);
   return Deserialize(schema);
