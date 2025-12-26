@@ -1,0 +1,39 @@
+// Test schema for constant blocks feature
+
+namespace ConstantsTest;
+
+/// Game configuration constants
+constant GameConfig {
+    /// Maximum number of players allowed in a game
+    max_players: int32 = 100;
+    /// Default player health
+    default_health: float = 100.0;
+    /// Maximum inventory slots
+    max_inventory_slots: uint16 = 64;
+    /// Enable debug mode by default
+    debug_enabled: bool = false;
+    /// Tick rate in milliseconds
+    tick_rate_ms: int64 = 16;
+}
+
+/// Network configuration constants
+constant NetworkConfig {
+    /// Connection timeout in milliseconds
+    timeout_ms: int64 = 30000;
+    /// Maximum concurrent connections
+    max_connections: uint32 = 1000;
+    /// Default port number
+    default_port: uint16 = 8080;
+    /// Enable compression
+    compression_enabled: bool = true;
+}
+
+/// Physics constants
+constant PhysicsConstants {
+    /// Gravity acceleration (m/s^2)
+    gravity: float = 9.81;
+    /// Maximum velocity
+    max_velocity: double = 299792458.0;
+    /// Friction coefficient
+    friction: float = 0.3;
+}

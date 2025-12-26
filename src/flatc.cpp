@@ -279,6 +279,9 @@ const static FlatCOption flatc_options[] = {
     {"", "grpc-callback-api", "",
      "Generate gRPC code using the callback (reactor) API instead of legacy "
      "sync/async."},
+    {"", "enable-constants", "",
+     "Enable parsing of constant blocks (shared constants of primitive types). "
+     "Currently only C++ and C# code generators support this feature."},
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
@@ -753,6 +756,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--no-grpc-callback-api" ||
                  arg == "--grpc-callback-api=false") {
         opts.grpc_callback_api = false;
+      } else if (arg == "--enable-constants") {
+        opts.enable_constants = true;
       } else {
         if (arg == "--proto") {
           opts.proto_mode = true;

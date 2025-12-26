@@ -548,6 +548,14 @@ class CppGenerator : public BaseGenerator {
       }
     }
 
+    // Generate code for all constant blocks.
+    for (const auto& constant_def : parser_.constants_.vec) {
+      if (!constant_def->generated) {
+        SetNameSpace(constant_def->defined_namespace);
+        GenConstant(*constant_def);
+      }
+    }
+
     // Generate code for all structs, then all tables.
     for (const auto& struct_def : parser_.structs_.vec) {
       if (struct_def->fixed && !struct_def->generated) {
@@ -1327,6 +1335,71 @@ class CppGenerator : public BaseGenerator {
     code_ += "  };";
     code_ += "  return &tt;";
     code_ += "}";
+    code_ += "";
+  }
+
+  // Generate a constant block as a namespace with static constexpr members.
+  void GenConstant(const ConstantDef& constant_def) {
+    code_.SetValue("CONSTANT_NAME", Name(constant_def));
+
+    GenComment(constant_def.doc_comment);
+    code_ += "namespace {{CONSTANT_NAME}} {";
+
+    for (const auto& field : constant_def.fields.vec) {
+      GenComment(field->doc_comment, "  ");
+
+      const auto& type = field->value.type;
+      std::string type_name = GenTypeBasic(type, true);
+      std::string value = field->value.constant;
+
+      if (IsFloat(type.base_type)) {
+        if (type.base_type == BASE_TYPE_FLOAT) {
+          if (value == "nan" || value == "inf" || value == "+inf" ||
+              value == "-inf") {
+            if (value == "nan") {
+              value = "std::numeric_limits<float>::quiet_NaN()";
+            } else if (value == "inf" || value == "+inf") {
+              value = "std::numeric_limits<float>::infinity()";
+            } else if (value == "-inf") {
+              value = "-std::numeric_limits<float>::infinity()";
+            }
+          } else {
+            if (value.find('.') == std::string::npos &&
+                value.find('e') == std::string::npos &&
+                value.find('E') == std::string::npos) {
+              value += ".0f";
+            } else {
+              value += "f";
+            }
+          }
+        } else {  // double
+          if (value == "nan" || value == "inf" || value == "+inf" ||
+              value == "-inf") {
+            if (value == "nan") {
+              value = "std::numeric_limits<double>::quiet_NaN()";
+            } else if (value == "inf" || value == "+inf") {
+              value = "std::numeric_limits<double>::infinity()";
+            } else if (value == "-inf") {
+              value = "-std::numeric_limits<double>::infinity()";
+            }
+          }
+        }
+      } else if (type.base_type == BASE_TYPE_BOOL) {
+        value = (value == "0" || value == "false") ? "false" : "true";
+      } else {
+        // Use NumToStringCpp for proper integer literal formatting
+        value = NumToStringCpp(value, type.base_type);
+      }
+
+      code_.SetValue("FIELD_TYPE", type_name);
+      code_.SetValue("FIELD_NAME", Name(*field));
+      code_.SetValue("FIELD_VALUE", value);
+
+      code_ +=
+          "  static constexpr {{FIELD_TYPE}} {{FIELD_NAME}} = {{FIELD_VALUE}};";
+    }
+
+    code_ += "}  // namespace {{CONSTANT_NAME}}";
     code_ += "";
   }
 
