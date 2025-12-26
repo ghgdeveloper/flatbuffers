@@ -30,9 +30,10 @@ namespace jsons {
 
 namespace {
 
-template<class T> static std::string GenFullName(const T *enum_def) {
+template <class T>
+static std::string GenFullName(const T* enum_def) {
   std::string full_name;
-  const auto &name_spaces = enum_def->defined_namespace->components;
+  const auto& name_spaces = enum_def->defined_namespace->components;
   for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
     full_name.append(*ns + "_");
   }
@@ -40,7 +41,8 @@ template<class T> static std::string GenFullName(const T *enum_def) {
   return full_name;
 }
 
-template<class T> static std::string GenTypeRef(const T *enum_def) {
+template <class T>
+static std::string GenTypeRef(const T* enum_def) {
   return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
 }
 
@@ -60,13 +62,14 @@ static std::string GenerateBitFlagsPattern(const EnumDef &enum_def) {
   return pattern;
 }
 
-static std::string GenType(const std::string &name) {
+static std::string GenType(const std::string& name) {
   return "\"type\" : \"" + name + "\"";
 }
 
 static std::string GenType(BaseType type) {
   switch (type) {
-    case BASE_TYPE_BOOL: return "\"type\" : \"boolean\"";
+    case BASE_TYPE_BOOL:
+      return "\"type\" : \"boolean\"";
     case BASE_TYPE_CHAR:
       return "\"type\" : \"integer\", \"minimum\" : " +
              NumToString(std::numeric_limits<int8_t>::min()) +
@@ -100,19 +103,26 @@ static std::string GenType(BaseType type) {
       return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
              NumToString(std::numeric_limits<uint64_t>::max());
     case BASE_TYPE_FLOAT:
-    case BASE_TYPE_DOUBLE: return "\"type\" : \"number\"";
-    case BASE_TYPE_STRING: return "\"type\" : \"string\"";
-    default: return "";
+    case BASE_TYPE_DOUBLE:
+      return "\"type\" : \"number\"";
+    case BASE_TYPE_STRING:
+      return "\"type\" : \"string\"";
+    default:
+      return "";
   }
 }
 
-static std::string GenBaseType(const Type &type) {
-  if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
-  if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
+static std::string GenBaseType(const Type& type) {
+  if (type.struct_def != nullptr) {
+    return GenTypeRef(type.struct_def);
+  }
+  if (type.enum_def != nullptr) {
+    return GenTypeRef(type.enum_def);
+  }
   return GenType(type.base_type);
 }
 
-static std::string GenArrayType(const Type &type) {
+static std::string GenArrayType(const Type& type) {
   std::string element_type;
 
   if (type.element == BASE_TYPE_UNION) {
@@ -169,7 +179,7 @@ static std::string GenArrayType(const Type &type) {
   return "\"type\" : \"array\", \"items\" : {" + element_type + "}";
 }
 
-static std::string GenType(const Type &type) {
+static std::string GenType(const Type& type) {
   switch (type.base_type) {
     case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();
     case BASE_TYPE_VECTOR: {
@@ -272,16 +282,16 @@ class JsonSchemaGenerator : public BaseGenerator {
   std::string code_;
 
  public:
-  JsonSchemaGenerator(const Parser &parser, const std::string &path,
-                      const std::string &file_name)
+  JsonSchemaGenerator(const Parser& parser, const std::string& path,
+                      const std::string& file_name)
       : BaseGenerator(parser, path, file_name, "", "", "json") {}
 
-  explicit JsonSchemaGenerator(const BaseGenerator &base_generator)
+  explicit JsonSchemaGenerator(const BaseGenerator& base_generator)
       : BaseGenerator(base_generator) {}
 
-  std::string GeneratedFileName(const std::string &path,
-                                const std::string &file_name,
-                                const IDLOptions &options /* unused */) const {
+  std::string GeneratedFileName(const std::string& path,
+                                const std::string& file_name,
+                                const IDLOptions& options /* unused */) const {
     (void)options;
     return path + file_name + ".schema.json";
   }
@@ -298,11 +308,11 @@ class JsonSchemaGenerator : public BaseGenerator {
   }
 
   std::string PrepareDescription(
-      const std::vector<std::string> &comment_lines) {
+      const std::vector<std::string>& comment_lines) {
     std::string comment;
     for (auto line_iterator = comment_lines.cbegin();
          line_iterator != comment_lines.cend(); ++line_iterator) {
-      const auto &comment_line = *line_iterator;
+      const auto& comment_line = *line_iterator;
 
       // remove leading and trailing spaces from comment line
       const auto start = std::find_if(comment_line.begin(), comment_line.end(),
@@ -455,7 +465,7 @@ class JsonSchemaGenerator : public BaseGenerator {
     }
     for (auto s = parser_.structs_.vec.cbegin();
          s != parser_.structs_.vec.cend(); ++s) {
-      const auto &structure = *s;
+      const auto& structure = *s;
       code_ += Indent(2) + "\"" + GenFullName(structure) + "\" : {" + NewLine();
       code_ += Indent(3) + GenType("object") + "," + NewLine();
 
@@ -473,7 +483,7 @@ class JsonSchemaGenerator : public BaseGenerator {
 
       code_ += Indent(3) + "\"properties\" : {" + NewLine();
 
-      const auto &properties = structure->fields.vec;
+      const auto& properties = structure->fields.vec;
       for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
         const auto &property = *prop;
 
@@ -624,7 +634,9 @@ class JsonSchemaGenerator : public BaseGenerator {
       }
       code_ += Indent(3) + "\"additionalProperties\" : false" + NewLine();
       auto closeType(Indent(2) + "}");
-      if (*s != parser_.structs_.vec.back()) { closeType.append(","); }
+      if (*s != parser_.structs_.vec.back()) {
+        closeType.append(",");
+      }
       code_ += closeType + NewLine();  // close type
     }
     code_ += Indent(1) + "}," + NewLine();  // close definitions
@@ -639,17 +651,19 @@ class JsonSchemaGenerator : public BaseGenerator {
 
   bool save() const {
     const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
-    return SaveFile(file_path.c_str(), code_, false);
+    return parser_.opts.file_saver->SaveFile(file_path.c_str(), code_, false);
   }
 
   const std::string getJson() { return code_; }
 };
 }  // namespace jsons
 
-static bool GenerateJsonSchema(const Parser &parser, const std::string &path,
-                               const std::string &file_name) {
+static bool GenerateJsonSchema(const Parser& parser, const std::string& path,
+                               const std::string& file_name) {
   jsons::JsonSchemaGenerator generator(parser, path, file_name);
-  if (!generator.generate()) { return false; }
+  if (!generator.generate()) {
+    return false;
+  }
   return generator.save();
 }
 
@@ -657,20 +671,21 @@ namespace {
 
 class JsonSchemaCodeGenerator : public CodeGenerator {
  public:
-  Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) override {
-    if (!GenerateJsonSchema(parser, path, filename)) { return Status::ERROR; }
+  Status GenerateCode(const Parser& parser, const std::string& path,
+                      const std::string& filename) override {
+    if (!GenerateJsonSchema(parser, path, filename)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *, int64_t,
-                      const CodeGenOptions &) override {
+  Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateMakeRule(const Parser &parser, const std::string &path,
-                          const std::string &filename,
-                          std::string &output) override {
+  Status GenerateMakeRule(const Parser& parser, const std::string& path,
+                          const std::string& filename,
+                          std::string& output) override {
     (void)parser;
     (void)path;
     (void)filename;
@@ -678,16 +693,16 @@ class JsonSchemaCodeGenerator : public CodeGenerator {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
-                          const std::string &filename) override {
+  Status GenerateGrpcCode(const Parser& parser, const std::string& path,
+                          const std::string& filename) override {
     (void)parser;
     (void)path;
     (void)filename;
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateRootFile(const Parser &parser,
-                          const std::string &path) override {
+  Status GenerateRootFile(const Parser& parser,
+                          const std::string& path) override {
     (void)parser;
     (void)path;
     return Status::NOT_IMPLEMENTED;
