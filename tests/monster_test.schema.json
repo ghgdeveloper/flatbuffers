@@ -231,7 +231,7 @@
                 "x-flatbuffers-attributes": {"id": "7"}
               },
         "test" : {
-                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] }],
+                "type" : ["object", "null"],
                 "default": null,
                 "x-flatbuffers-attributes": {"id": "8"}
               },
@@ -396,7 +396,7 @@
                 "x-flatbuffers-attributes": {"id": "43"}
               },
         "any_unique" : {
-                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] }],
+                "type" : ["object", "null"],
                 "default": null,
                 "x-flatbuffers-attributes": {"id": "44"}
               },
@@ -405,7 +405,7 @@
                 "x-flatbuffers-attributes": {"id": "45"}
               },
         "any_ambiguous" : {
-                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }] }],
+                "type" : ["object", "null"],
                 "default": null,
                 "x-flatbuffers-attributes": {"id": "46"}
               },
