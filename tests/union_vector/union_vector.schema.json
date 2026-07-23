@@ -62,7 +62,7 @@
                 "type" : "string", "enum": ["NONE", "MuLan", "Rapunzel", "Belle", "BookFan", "Other", "Unused"]
               },
         "main_character" : {
-                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/Attacker" },{ "$ref" : "#/definitions/Rapunzel" },{ "$ref" : "#/definitions/BookReader" },{ "$ref" : "#/definitions/BookReader" },{ "type": "string" },{ "type": "string" }] }],
+                "type" : ["object", "string", "null"],
                 "default": null
               },
         "characters_type" : {

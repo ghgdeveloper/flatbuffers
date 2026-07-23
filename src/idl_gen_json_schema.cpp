@@ -259,8 +259,6 @@ static std::string GenDefaultValue(const Type &type) {
 }
 
 static std::string GenNullableType(const FieldDef &field) {
-  const std::string base_type = GenType(field.value.type);
-
   bool can_be_null = false;
 
   if (field.IsOptional()) {
@@ -268,6 +266,40 @@ static std::string GenNullableType(const FieldDef &field) {
   } else if (!field.IsRequired() && !IsScalar(field.value.type.base_type)) {
     can_be_null = true;
   }
+
+  // Union value fields: emit only a permissive JSON type and let the table's
+  // allOf/if-then block (keyed on <field>_type) supply the per-variant $ref.
+  // Emitting an anyOf of all variants here makes editors offer every variant's
+  // fields when completing an empty value object.
+  if (field.value.type.base_type == BASE_TYPE_UNION) {
+    // Constrain to the JSON types the members use: object for table/struct,
+    // string for string members, plus null when optional.
+    bool has_object = false;
+    bool has_string = false;
+    for (const auto &union_value : field.value.type.enum_def->Vals()) {
+      switch (union_value->union_type.base_type) {
+        case BASE_TYPE_STRUCT: has_object = true; break;  // table or struct
+        case BASE_TYPE_STRING: has_string = true; break;
+        default: break;  // BASE_TYPE_NONE
+      }
+    }
+    std::vector<std::string> json_types;
+    if (has_object) json_types.push_back("\"object\"");
+    if (has_string) json_types.push_back("\"string\"");
+    if (can_be_null) json_types.push_back("\"null\"");
+    // Union with only a NONE member.
+    if (json_types.empty()) return "\"type\" : \"null\"";
+    if (json_types.size() == 1) return "\"type\" : " + json_types.front();
+    std::string joined = "\"type\" : [";
+    for (size_t i = 0; i < json_types.size(); ++i) {
+      if (i != 0) joined.append(", ");
+      joined.append(json_types[i]);
+    }
+    joined.append("]");
+    return joined;
+  }
+
+  const std::string base_type = GenType(field.value.type);
 
   if (can_be_null) {
     return "\"anyOf\": [{ \"type\": \"null\" }, { " + base_type + " }]";
