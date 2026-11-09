@@ -110,6 +110,8 @@ cc_library(
         "idl_gen_binary.h",
         "idl_gen_cpp.cpp",
         "idl_gen_cpp.h",
+        "idl_gen_cpp_unreal.cpp",
+        "idl_gen_cpp_unreal.h",
         "idl_gen_csharp.cpp",
         "idl_gen_csharp.h",
         "idl_gen_dart.cpp",

@@ -1,0 +1,68 @@
+include "unreal_included.fbs";
+
+namespace UnrealTest;
+
+union Part { Included.SharedThing, Included.Cog, Included.Vec2i }
+
+struct Crate (unreal_type) {
+  min: Included.Vec2i;
+  max: Included.Vec2i;
+}
+
+struct Anchor (unreal_type) {
+  x_raw: int (fixed_point: 8);
+  y_raw: int (fixed_point: 8);
+}
+
+table Sprocket (unreal_type) {
+  name: string (required);
+  tags: [string];
+  values: [int32];
+  counts: [ushort];
+  bools: [bool];
+  crates: [Crate];
+  things: [Included.SharedThing];
+  elements: [Included.Element];
+  element: Included.Element = Frost;
+  flags: Included.RenderFlags;
+  bounds: Crate;
+  anchor: Anchor;
+  flag: bool = true;
+  tiny: byte = -1;
+  utiny: ubyte = 200;
+  small: short = -12345;
+  usmall: ushort = 54321;
+  medium: int = -2147483648;
+  umedium: uint = 4000000000;
+  big: long = -9223372036854775808;
+  ratio: float = 1.5;
+  precise: double = -2.25;
+  speed_raw: int = 384 (fixed_point: 8);
+  weight_raw: uint (fixed_point: 16);
+  path_raw: [short] (fixed_point: 4);
+  legacy: int32 (deprecated);
+  channels: Included.Channels = "Red Velocity";
+  flag_list: [Included.RenderFlags];
+  rank: Included.Rank = High;
+  part: Part;
+  parts: [Part];
+  maybe_count: int = null;
+  maybe_element: Included.Element = null;
+  maybe_flags: Included.RenderFlags = null;
+  maybe_enabled: bool = null;
+  maybe_scale_raw: int = null (fixed_point: 8);
+  child: Included.SharedThing;
+  required_child: Included.SharedThing (required);
+  required_bounds: Crate (required);
+  huge: ulong = 18000000000000000000;
+  huges: [ulong];
+  blob: [ubyte];
+}
+
+table CustomNamed (unreal_type: "FRenamedWidget", unreal_specifiers: "BlueprintType, Atomic") {
+  id: uint16 (unreal_specifiers: "VisibleAnywhere");
+  label: string (unreal_specifiers: "VisibleAnywhere, BlueprintReadOnly");
+  element: Included.Element = Wilds (unreal_specifiers: "VisibleAnywhere, BlueprintReadOnly");
+  health: int = 100 (unreal_specifiers: "EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = \"0\", ClampMax = \"100\")");
+  opacity: float = 1.0 (unreal_specifiers: "EditAnywhere, BlueprintReadOnly, Meta = (ClampMin = \"0.0\", ClampMax = \"1.0\", UIMin = \"0.0\", UIMax = \"1.0\")");
+}

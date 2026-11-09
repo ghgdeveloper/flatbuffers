@@ -16,6 +16,8 @@
 
 #include <cstdio>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "bfbs_gen_lua.h"
 #include "bfbs_gen_nim.h"
@@ -25,6 +27,7 @@
 #include "flatbuffers/util.h"
 #include "idl_gen_binary.h"
 #include "idl_gen_cpp.h"
+#include "idl_gen_cpp_unreal.h"
 #include "idl_gen_csharp.h"
 #include "idl_gen_dart.h"
 #include "idl_gen_fbs.h"
@@ -78,6 +81,17 @@ int main(int argc, const char* argv[]) {
 
   g_program_name = argv[0];
 
+  std::string unreal_module;
+  std::vector<const char*> args;
+  args.reserve(static_cast<size_t>(argc));
+  for (int argi = 0; argi < argc; ++argi) {
+    if (std::string(argv[argi]) == "--unreal-module" && argi + 1 < argc) {
+      unreal_module = argv[++argi];
+    } else {
+      args.push_back(argv[argi]);
+    }
+  }
+
   flatbuffers::FlatCompiler::InitParams params;
   params.warn_fn = Warn;
   params.error_fn = Error;
@@ -94,6 +108,15 @@ int main(int argc, const char* argv[]) {
       flatbuffers::FlatCOption{"c", "cpp", "",
                                "Generate C++ headers for tables/structs"},
       flatbuffers::NewCppCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{
+          "", "cpp-unreal", "",
+          "Generate Unreal Engine types and "
+          "conversions for definitions marked with the unreal_type "
+          "attribute (requires --gen-object-api and scoped enums; "
+          "--unreal-module NAME names the module the headers compile into)"},
+      flatbuffers::NewCppUnrealCodeGenerator(unreal_module));
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{"n", "csharp", "",
@@ -181,8 +204,8 @@ int main(int argc, const char* argv[]) {
       flatbuffers::NewTsCodeGenerator());
 
   // Create the FlatC options by parsing the command line arguments.
-  flatbuffers::FlatCOptions options =
-      flatc.ParseFromCommandLineArguments(argc, argv);
+  flatbuffers::FlatCOptions options = flatc.ParseFromCommandLineArguments(
+      static_cast<int>(args.size()), args.data());
 
   // this exists here to ensure file_saver outlives the compilation process
   std::unique_ptr<flatbuffers::FileSaver> file_saver;

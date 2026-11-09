@@ -563,6 +563,25 @@ flatc(
     prefix=cpp_17_prefix,
 )
 
+flatc(
+    [
+        "--cpp",
+        "--cpp-std",
+        "c++17",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-types",
+        "--cpp-unreal",
+        "--unreal-module",
+        "UnrealTest",
+    ],
+    prefix="unreal",
+    schema=[
+        "unreal/unreal_included.fbs",
+        "unreal/unreal_test.fbs",
+    ],
+)
+
 # Private annotations
 annotations_test_schema = "private_annotation_test.fbs"
 
