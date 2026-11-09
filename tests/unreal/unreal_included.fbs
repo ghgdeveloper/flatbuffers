@@ -1,0 +1,59 @@
+attribute "unreal_type";
+attribute "english";
+attribute "unreal_specifiers";
+attribute "fixed_point";
+
+namespace UnrealTest.Included;
+
+enum Element : ubyte (unreal_type) {
+  Fire,
+  Frost (english: "Frosty Boy"),
+  Wilds
+}
+
+enum RenderFlags : ubyte (bit_flags, unreal_type) {
+  Shadows,
+  Decals,
+  Particles
+}
+
+enum Channels : ushort (bit_flags, unreal_type) {
+  Red,
+  Green,
+  Blue,
+  Alpha,
+  Depth,
+  Stencil,
+  Normal,
+  Tangent,
+  Velocity
+}
+
+enum Tier : ubyte (unreal_type, unreal_specifiers: "Meta = (ScriptName = \"Tier\")") {
+  Bronze,
+  Silver
+}
+
+enum Rank : ubyte (unreal_type) {
+  Low = 1,
+  High = 5
+}
+
+enum UnusedColor : byte {
+  Red,
+  Green
+}
+
+struct Vec2i (unreal_type) {
+  x: int32;
+  y: int32;
+}
+
+table SharedThing (unreal_type) {
+  label: string;
+  weight: float = 2.5;
+}
+
+table Cog (unreal_type) {
+  teeth: int;
+}
