@@ -484,7 +484,7 @@ class ResizeContext {
   // type T, with direction D).
   template <typename T, int D>
   void Straddle(const void* first, const void* second, void* offsetloc) {
-    if (first <= startptr_ && second >= startptr_) {
+    if (first < startptr_ && second >= startptr_) {
       WriteScalar<T>(offsetloc, ReadScalar<T>(offsetloc) + delta_ * D);
       DagCheck(offsetloc) = true;
     }
@@ -512,7 +512,7 @@ class ResizeContext {
       // Check if insertion point is between the table and a vtable that
       // precedes it. This can't happen in current construction code, but check
       // just in case we ever change the way flatbuffers are built.
-      Straddle<soffset_t, -1>(vtable, table, table);
+      Straddle<soffset_t, 1>(vtable, table, table);
     } else {
       // Check each field.
       auto fielddefs = objectdef.fields();
@@ -595,10 +595,15 @@ void SetString(const reflection::Schema& schema, const std::string& val,
   auto delta = static_cast<int>(val.size()) - static_cast<int>(str->size());
   auto str_start = static_cast<uoffset_t>(
       reinterpret_cast<const uint8_t*>(str) - flatbuf->data());
-  auto start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
+  auto data_start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
+  // Resize at the old NUL terminator. Growing inserts bytes just before it and
+  // shrinking removes the last characters of the old string, so the resize
+  // never touches the length prefix or the neighboring objects, and no other
+  // object can start at the resize point.
+  auto start = data_start + static_cast<uoffset_t>(str->size());
   if (delta) {
     // Clear the old string, since we don't want parts of it remaining.
-    memset(flatbuf->data() + start, 0, str->size());
+    memset(flatbuf->data() + data_start, 0, str->size());
     // Different size, we must expand (or contract).
     ResizeContext ctx(schema, start, delta, flatbuf, root_table);
     // Set the new length.
@@ -606,7 +611,7 @@ void SetString(const reflection::Schema& schema, const std::string& val,
                 static_cast<uoffset_t>(val.size()));
   }
   // Copy new data. Safe because we created the right amount of space.
-  memcpy(flatbuf->data() + start, val.c_str(), val.size() + 1);
+  memcpy(flatbuf->data() + data_start, val.c_str(), val.size() + 1);
 }
 
 uint8_t* ResizeAnyVector(const reflection::Schema& schema, uoffset_t newsize,

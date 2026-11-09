@@ -1,5 +1,6 @@
 #include "reflection_test.h"
 
+#include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
@@ -246,6 +247,61 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
   TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
                               fbb.GetBufferPointer(), fbb.GetSize()),
           true);
+}
+
+void SetStringSafelyResizesBufferTest() {
+  const char* schema_text =
+      "table Item { name:string; } table Root { items:[Item]; } "
+      "root_type Root;";
+  flatbuffers::Parser schema_parser;
+  TEST_EQ(schema_parser.Parse(schema_text), true);
+  schema_parser.Serialize();
+  const std::vector<uint8_t> schema_buf(
+      schema_parser.builder_.GetBufferPointer(),
+      schema_parser.builder_.GetBufferPointer() +
+          schema_parser.builder_.GetSize());
+  auto& schema = *reflection::GetSchema(schema_buf.data());
+  auto& root_table = *schema.root_table();
+  auto& items_field = *root_table.fields()->LookupByKey("items");
+  auto& item_table = *schema.objects()->LookupByKey("Item");
+  auto& name_field = *item_table.fields()->LookupByKey("name");
+
+  auto items_of = [&](std::vector<uint8_t>& buf) {
+    return flatbuffers::GetFieldV<flatbuffers::Offset<flatbuffers::Table>>(
+        *flatbuffers::GetAnyRoot(buf.data()), items_field);
+  };
+
+  auto check = [&](size_t old_len, size_t new_len) {
+    const std::string old_name(old_len, 'b');
+    const std::string new_name(new_len, 'c');
+    flatbuffers::Parser parser;
+    TEST_EQ(parser.Parse(schema_text), true);
+    const std::string json = "{ items: [ { name: \"first\" }, { name: \"" +
+                             old_name + "\" }, { name: \"third\" } ] }";
+    TEST_EQ(parser.Parse(json.c_str()), true);
+    std::vector<uint8_t> buf(
+        parser.builder_.GetBufferPointer(),
+        parser.builder_.GetBufferPointer() + parser.builder_.GetSize());
+
+    SetString(schema, new_name, GetFieldS(*items_of(buf)->Get(1), name_field),
+              &buf);
+
+    const bool valid =
+        flatbuffers::Verify(schema, root_table, buf.data(), buf.size());
+    TEST_EQ(valid, true);
+    if (!valid) return;
+    auto items = items_of(buf);
+    TEST_EQ(items->size(), 3u);
+    TEST_EQ_STR(GetFieldS(*items->Get(0), name_field)->c_str(), "first");
+    TEST_EQ_STR(GetFieldS(*items->Get(1), name_field)->c_str(),
+                new_name.c_str());
+    TEST_EQ_STR(GetFieldS(*items->Get(2), name_field)->c_str(), "third");
+  };
+
+  for (size_t old_len = 1; old_len <= 12; old_len++) {
+    check(old_len, old_len + 2);
+    check(old_len, 1);
+  }
 }
 
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf) {
